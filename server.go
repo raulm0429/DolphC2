@@ -7,10 +7,12 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )
 
-func Tasks(resp http.ResponseWriter, _ *http.Request) {
+func Tasks(resp http.ResponseWriter, r *http.Request) {
+	//remoteAddr := r.RemoteAddr
 	resp.WriteHeader(http.StatusCreated)
 	resp.Header().Set("Content-Type", "application/json")
 	response := make(map[string]string)
@@ -23,16 +25,17 @@ func Tasks(resp http.ResponseWriter, _ *http.Request) {
 	return
 }
 
-func Post(rw http.ResponseWriter, r *http.Request) {
+func reg(rw http.ResponseWriter, r *http.Request) {
 	reqBody, _ := ioutil.ReadAll(r.Body)
 	fmt.Println(string(reqBody))
+	fmt.Println(r.RemoteAddr)
 }
 
 func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/tasks", Tasks)
-	r.HandleFunc("/post", Post).Methods("POST")
+	r.HandleFunc("/reg", reg).Methods("POST")
 
 	log.Println("Listening ...")
-	http.ListenAndServe("10.110.6.88:8080", r)
+	http.ListenAndServe("192.168.56.1:8080", handlers.CORS(handlers.AllowedOrigins([]string{"*"}))(r))
 }
