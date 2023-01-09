@@ -6,29 +6,49 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )
 
+type RegisteredInfo struct {
+	RemoteAddress string
+	DesktopName   string
+}
+
+type Task struct {
+	Cmd string
+}
+
 func Tasks(resp http.ResponseWriter, r *http.Request) {
 	//remoteAddr := r.RemoteAddr
-	resp.WriteHeader(http.StatusCreated)
-	resp.Header().Set("Content-Type", "application/json")
-	response := make(map[string]string)
-	response["cmd"] = "calc"
-	jsonResp, err := json.Marshal(response)
+	content, err := ioutil.ReadFile("Tasks/tasks.json")
 	if err != nil {
-		log.Fatalf("Error happened in JSON marshal. Err: %s", err)
+		log.Fatal(err)
 	}
-	resp.Write(jsonResp)
+
+	resp.Write(content)
 	return
 }
 
 func reg(rw http.ResponseWriter, r *http.Request) {
 	reqBody, _ := ioutil.ReadAll(r.Body)
 	fmt.Println(string(reqBody))
-	fmt.Println(r.RemoteAddr)
+
+	ip := strings.Split(r.RemoteAddr, ":")
+
+	registeredInfo := RegisteredInfo{}
+	json.Unmarshal([]byte(reqBody), &registeredInfo)
+	registeredInfo.RemoteAddress = ip[0]
+	content, err := json.Marshal(registeredInfo)
+	if err != nil {
+		fmt.Println(err)
+	}
+	err = ioutil.WriteFile("Data/userfile.json", content, 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func main() {
@@ -36,6 +56,9 @@ func main() {
 	r.HandleFunc("/tasks", Tasks)
 	r.HandleFunc("/reg", reg).Methods("POST")
 
+	corsObj := handlers.AllowedOrigins([]string{"*"})
+
 	log.Println("Listening ...")
-	http.ListenAndServe("192.168.56.1:8080", handlers.CORS(handlers.AllowedOrigins([]string{"*"}))(r))
+	http.ListenAndServe("10.110.6.88:80", handlers.CORS(corsObj)(r))
 }
+
