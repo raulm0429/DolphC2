@@ -13,12 +13,6 @@
 using namespace std;
 using json = nlohmann::json;
 
-struct person {
-    std::string name;
-    std::string address;
-    int age;
-};
-
 struct output {
     string consol_out;    
 };
