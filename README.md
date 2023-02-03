@@ -1,4 +1,4 @@
-# DolphC2
+# DolphC2, command dolphin whatever you like and it will always execute
 C2 framework for learning/testing purposes
 
 REST-API server that communicates to the client with json.
